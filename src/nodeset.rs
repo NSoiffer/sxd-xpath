@@ -1,13 +1,15 @@
 //! Support for collections of nodes.
 
-use std::borrow::ToOwned;
+use std::borrow::{Cow, ToOwned};
 use std::collections::hash_set;
 use std::collections::{HashMap, HashSet};
 use std::iter::{FromIterator, IntoIterator};
 use std::usize;
 
 use sxd_document_no_unsafe::dom;
-use sxd_document_no_unsafe::QName;
+use sxd_document_no_unsafe::{as_opt_str, as_str, as_qname, QName};
+
+use crate::OwnedQName;
 
 macro_rules! unpack(
     ($enum_name:ident, {
@@ -40,11 +42,11 @@ macro_rules! conversion_trait(
 ///
 /// This differs from the DOM, which does not treat namespaces as a
 /// separate item.
-#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct Namespace<'d> {
     pub parent: dom::Element<'d>,
-    pub prefix: &'d str,
-    pub uri: &'d str,
+    pub prefix: Cow<'d, str>,
+    pub uri: Cow<'d, str>,
 }
 
 impl<'d> Namespace<'d> {
@@ -54,19 +56,19 @@ impl<'d> Namespace<'d> {
     pub fn parent(&self) -> dom::Element<'d> {
         self.parent
     }
-    pub fn prefix(&self) -> &'d str {
-        self.prefix
+    pub fn prefix(&self) -> &str {
+        self.prefix.as_ref()
     }
-    pub fn uri(&self) -> &'d str {
-        self.uri
+    pub fn uri(&self) -> &str {
+        self.uri.as_ref()
     }
-    pub fn expanded_name(&self) -> QName<'d> {
-        QName::new(self.prefix)
+    pub fn expanded_name(&self) -> OwnedQName {
+        OwnedQName::from(self.prefix.as_ref())
     }
 }
 
 /// Any of the various types of nodes found in an XML document.
-#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub enum Node<'d> {
     Root(dom::Root<'d>),
     Element(dom::Element<'d>),
@@ -81,7 +83,7 @@ impl<'d> Node<'d> {
     /// The document to which this node belongs.
     pub fn document(&self) -> dom::Document<'d> {
         use self::Node::*;
-        match *self {
+        match self {
             Root(n) => n.document(),
             Element(n) => n.document(),
             Attribute(n) => n.document(),
@@ -96,13 +98,16 @@ impl<'d> Node<'d> {
     pub fn prefixed_name(&self) -> Option<String> {
         use self::Node::*;
 
-        fn qname_prefixed_name(
+        fn qname_prefixed_name<Q: crate::QNameLike>(
             element: dom::Element<'_>,
-            name: QName<'_>,
+            name: &Q,
             preferred_prefix: Option<&str>,
         ) -> String {
             if let Some(ns_uri) = name.namespace_uri() {
-                if let Some(prefix) = element.prefix_for_namespace_uri(ns_uri, preferred_prefix) {
+                let prefix_interned = element.prefix_for_namespace_uri(ns_uri, preferred_prefix);
+                // as_opt_str! doesn't handle InternedString/StrGuard; use explicit conversion
+                let prefix_opt = prefix_interned.as_ref().map(|s| &**s);
+                if let Some(prefix) = prefix_opt {
                     format!("{}:{}", prefix, name.local_part())
                 } else {
                     name.local_part().to_owned()
@@ -112,32 +117,40 @@ impl<'d> Node<'d> {
             }
         }
 
-        match *self {
+        match self {
             Root(_) => None,
-            Element(n) => Some(qname_prefixed_name(n, n.name(), n.preferred_prefix())),
+            Element(n) => {
+                let name: OwnedQName = as_qname!(n.name()).into();
+                let pref_guard = n.preferred_prefix();
+                let pref = pref_guard.as_ref().map(|g| &**g);
+                Some(qname_prefixed_name::<OwnedQName>(*n, &name, pref))
+            }
             Attribute(n) => {
                 let parent = n.parent().expect("Cannot process attribute without parent");
-                Some(qname_prefixed_name(parent, n.name(), n.preferred_prefix()))
+                let name: OwnedQName = as_qname!(n.name()).into();
+                let pref_guard = n.preferred_prefix();
+                let pref = pref_guard.as_ref().map(|g| &**g);
+                Some(qname_prefixed_name::<OwnedQName>(parent, &name, pref))
             }
             Text(_) => None,
             Comment(_) => None,
-            ProcessingInstruction(n) => Some(n.target().to_owned()),
-            Namespace(n) => Some(n.prefix().to_owned()),
+            ProcessingInstruction(n) => Some(as_str!(n.target()).to_owned()),
+            Namespace(ref n) => Some(n.prefix().to_owned()),
         }
     }
 
     /// Returns the [expanded name][] of the node, if any.
     ///
     /// [expanded name]: https://www.w3.org/TR/xpath/#dt-expanded-name
-    pub fn expanded_name(&self) -> Option<QName<'d>> {
+    pub fn expanded_name(&self) -> Option<OwnedQName> {
         use self::Node::*;
-        match *self {
+        match self {
             Root(_) => None,
-            Element(n) => Some(n.name()),
-            Attribute(n) => Some(n.name()),
+            Element(n) => Some(as_qname!(n.name()).into()),
+            Attribute(n) => Some(as_qname!(n.name()).into()),
             Text(_) => None,
             Comment(_) => None,
-            ProcessingInstruction(n) => Some(QName::new(n.target())),
+            ProcessingInstruction(n) => Some(QName::new(as_str!(n.target())).into()),
             Namespace(n) => Some(n.expanded_name()),
         }
     }
@@ -145,7 +158,7 @@ impl<'d> Node<'d> {
     /// Returns the parent of the node, if any.
     pub fn parent(&self) -> Option<Node<'d>> {
         use self::Node::*;
-        match *self {
+        match self {
             Root(_) => None,
             Element(n) => n.parent().map(Into::into),
             Attribute(n) => n.parent().map(Into::into),
@@ -159,7 +172,7 @@ impl<'d> Node<'d> {
     /// Returns the children of the node, if any.
     pub fn children(&self) -> Vec<Node<'d>> {
         use self::Node::*;
-        match *self {
+        match self {
             Root(n) => n.children().into_iter().map(Into::into).collect(),
             Element(n) => n.children().into_iter().map(Into::into).collect(),
             Attribute(_) => Vec::new(),
@@ -173,7 +186,7 @@ impl<'d> Node<'d> {
     /// Returns the nodes with the same parent that occur before this node.
     pub fn preceding_siblings(&self) -> Vec<Node<'d>> {
         use self::Node::*;
-        match *self {
+        match self {
             Root(_) => Vec::new(),
             Element(n) => n
                 .preceding_siblings()
@@ -207,7 +220,7 @@ impl<'d> Node<'d> {
     /// Returns the nodes with the same parent that occur after this node.
     pub fn following_siblings(&self) -> Vec<Node<'d>> {
         use self::Node::*;
-        match *self {
+        match self {
             Root(_) => Vec::new(),
             Element(n) => n.following_siblings().into_iter().map(Into::into).collect(),
             Attribute(_) => Vec::new(),
@@ -230,7 +243,7 @@ impl<'d> Node<'d> {
             for child in node.children() {
                 match child {
                     Node::Element(_) => document_order_text_nodes(child, result),
-                    Node::Text(n) => result.push_str(n.text()),
+                    Node::Text(n) => result.push_str(as_str!(n.text())),
                     _ => {}
                 }
             }
@@ -242,13 +255,13 @@ impl<'d> Node<'d> {
             result
         }
 
-        match *self {
-            Root(_) => text_descendants_string_value(*self),
-            Element(_) => text_descendants_string_value(*self),
-            Attribute(n) => n.value().to_owned(),
-            ProcessingInstruction(n) => n.value().unwrap_or("").to_owned(),
-            Comment(n) => n.text().to_owned(),
-            Text(n) => n.text().to_owned(),
+        match self {
+            Root(_) => text_descendants_string_value(self.clone()),
+            Element(_) => text_descendants_string_value(self.clone()),
+            Attribute(n) => as_str!(n.value()).to_owned(),
+            ProcessingInstruction(n) => as_opt_str!(n.value()).map(|s| s.to_string()).unwrap_or_default(),
+            Comment(n) => as_str!(n.text()).to_owned(),
+            Text(n) => as_str!(n.text()).to_owned(),
             Namespace(n) => n.uri().to_owned(),
         }
     }
@@ -354,14 +367,14 @@ impl<'d> Nodeset<'d> {
         let node = self.nodes.iter().next()?;
 
         if self.nodes.len() == 1 {
-            return Some(*node);
+            return Some(node.clone());
         }
 
         let order = DocOrder::new(node.document());
 
         self.nodes
             .iter()
-            .min_by_key(|&&n| order.order_of(n))
+            .min_by_key(|n| order.order_of((*n).clone()))
             .cloned()
     }
 
@@ -377,7 +390,7 @@ impl<'d> Nodeset<'d> {
         };
 
         let order = DocOrder::new(doc);
-        nodes.sort_by_key(|&n| order.order_of(n));
+        nodes.sort_by_key(|n| order.order_of(n.clone()));
         nodes
     }
 }
@@ -404,12 +417,12 @@ impl<'d> DocOrder<'d> {
         let mut order = HashMap::new();
 
         while let Some(n) = stack.pop() {
-            order.insert(n, idx);
+            order.insert(n.clone(), idx);
             idx += 1;
 
             stack.extend(n.children().into_iter().rev());
 
-            if let Node::Element(e) = n {
+            if let Node::Element(e) = &n {
                 // TODO: namespaces
                 stack.extend(e.attributes().into_iter().map(Node::Attribute));
             }

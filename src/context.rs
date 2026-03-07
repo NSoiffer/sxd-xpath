@@ -135,7 +135,7 @@ impl<'d> Default for Context<'d> {
 /// We track two separate lifetimes: that of the user-provided context
 /// (`'c`) and that of the document (`'d`). This allows the
 /// user-provided context to live shorter than the document.
-#[derive(Copy, Clone)]
+#[derive(Clone)]
 pub struct Evaluation<'c, 'd> {
     /// The context node
     pub node: Node<'d>,

@@ -94,7 +94,7 @@ pub struct ContextNode;
 
 impl Expression for ContextNode {
     fn evaluate<'c, 'd>(&self, context: &context::Evaluation<'c, 'd>) -> Result<Value<'d>, Error> {
-        Ok(Value::Nodeset(nodeset![context.node]))
+        Ok(Value::Nodeset(nodeset![context.node.clone()]))
     }
 }
 
@@ -478,6 +478,7 @@ impl Predicate {
         nodes: OrderedNodes<'d>,
     ) -> Result<OrderedNodes<'d>, Error> {
         context
+            .clone()
             .new_contexts_for(nodes)
             .filter_map(|ctx| match self.matches(&ctx) {
                 Ok(true) => Some(Ok(ctx.node)),
@@ -1069,7 +1070,7 @@ mod test {
         let expr = ParameterizedStep::new(axis.clone(), Box::new(node_test), vec![]);
 
         let context = setup.context();
-        expr.evaluate(&context, nodeset![context.node]).unwrap();
+        expr.evaluate(&context, nodeset![context.node.clone()]).unwrap();
 
         assert_eq!(1, axis.calls());
     }

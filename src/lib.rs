@@ -202,6 +202,39 @@ impl<'a> From<QName<'a>> for OwnedQName {
     }
 }
 
+impl OwnedQName {
+    pub fn namespace_uri(&self) -> Option<&str> {
+        self.namespace_uri.as_deref()
+    }
+    pub fn local_part(&self) -> &str {
+        &self.local_part
+    }
+}
+
+/// Trait for types that provide QName-like access (namespace_uri, local_part).
+pub trait QNameLike {
+    fn namespace_uri(&self) -> Option<&str>;
+    fn local_part(&self) -> &str;
+}
+
+impl<'a> QNameLike for QName<'a> {
+    fn namespace_uri(&self) -> Option<&str> {
+        QName::namespace_uri(self)
+    }
+    fn local_part(&self) -> &str {
+        QName::local_part(self)
+    }
+}
+
+impl QNameLike for OwnedQName {
+    fn namespace_uri(&self) -> Option<&str> {
+        OwnedQName::namespace_uri(self)
+    }
+    fn local_part(&self) -> &str {
+        OwnedQName::local_part(self)
+    }
+}
+
 type LiteralValue = Value<'static>;
 
 /// The primary types of values that an XPath expression accepts

@@ -1,6 +1,8 @@
 use std::fmt;
 
-use sxd_document_no_unsafe::QName;
+use sxd_document_no_unsafe::{as_qname, as_str};
+
+use crate::OwnedQName;
 
 use crate::context;
 use crate::nodeset::{self, OrderedNodes};
@@ -27,7 +29,7 @@ pub struct NameTest {
 }
 
 impl NameTest {
-    fn matches(&self, context: &context::Evaluation<'_, '_>, node_name: QName<'_>) -> bool {
+    fn matches<Q: crate::QNameLike>(&self, context: &context::Evaluation<'_, '_>, node_name: &Q) -> bool {
         let is_wildcard = self.local_part == "*";
 
         let test_uri = self.prefix.as_ref().map(|p| {
@@ -57,8 +59,9 @@ impl Attribute {
 impl NodeTest for Attribute {
     fn test<'c, 'd>(&self, context: &context::Evaluation<'c, 'd>, result: &mut OrderedNodes<'d>) {
         if let nodeset::Node::Attribute(ref a) = context.node {
-            if self.name_test.matches(context, a.name()) {
-                result.add(context.node);
+            let name: OwnedQName = as_qname!(a.name()).into();
+            if self.name_test.matches(context, &name) {
+                result.add(context.node.clone());
             }
         }
     }
@@ -78,8 +81,8 @@ impl Namespace {
 impl NodeTest for Namespace {
     fn test<'c, 'd>(&self, context: &context::Evaluation<'c, 'd>, result: &mut OrderedNodes<'d>) {
         if let nodeset::Node::Namespace(ref ns) = context.node {
-            if self.name_test.matches(context, QName::new(ns.prefix())) {
-                result.add(context.node);
+            if self.name_test.matches(context, &OwnedQName::from(ns.prefix())) {
+                result.add(context.node.clone());
             }
         }
     }
@@ -99,8 +102,9 @@ impl Element {
 impl NodeTest for Element {
     fn test<'c, 'd>(&self, context: &context::Evaluation<'c, 'd>, result: &mut OrderedNodes<'d>) {
         if let nodeset::Node::Element(ref e) = context.node {
-            if self.name_test.matches(context, e.name()) {
-                result.add(context.node);
+            let name: OwnedQName = as_qname!(e.name()).into();
+            if self.name_test.matches(context, &name) {
+                result.add(context.node.clone());
             }
         }
     }
@@ -112,7 +116,7 @@ pub struct Node;
 
 impl NodeTest for Node {
     fn test<'c, 'd>(&self, context: &context::Evaluation<'c, 'd>, result: &mut OrderedNodes<'d>) {
-        result.add(context.node);
+        result.add(context.node.clone());
     }
 }
 
@@ -123,7 +127,7 @@ pub struct Text;
 impl NodeTest for Text {
     fn test<'c, 'd>(&self, context: &context::Evaluation<'c, 'd>, result: &mut OrderedNodes<'d>) {
         if let nodeset::Node::Text(_) = context.node {
-            result.add(context.node);
+            result.add(context.node.clone());
         }
     }
 }
@@ -135,7 +139,7 @@ pub struct Comment;
 impl NodeTest for Comment {
     fn test<'c, 'd>(&self, context: &context::Evaluation<'c, 'd>, result: &mut OrderedNodes<'d>) {
         if let nodeset::Node::Comment(_) = context.node {
-            result.add(context.node);
+            result.add(context.node.clone());
         }
     }
 }
@@ -154,10 +158,11 @@ impl ProcessingInstruction {
 impl NodeTest for ProcessingInstruction {
     fn test<'c, 'd>(&self, context: &context::Evaluation<'c, 'd>, result: &mut OrderedNodes<'d>) {
         if let nodeset::Node::ProcessingInstruction(pi) = context.node {
+            let pi_target = as_str!(pi.target());
             match self.target {
-                Some(ref name) if name == pi.target() => result.add(context.node),
+                Some(ref name) if name == pi_target => result.add(context.node.clone()),
                 Some(_) => {}
-                None => result.add(context.node),
+                None => result.add(context.node.clone()),
             }
         }
     }
