@@ -3,7 +3,7 @@ use snafu::Snafu;
 use std::borrow::ToOwned;
 use std::collections::VecDeque;
 use std::string;
-use sxd_document::parser::XmlParseExt;
+use sxd_document_no_unsafe::parser::XmlParseExt;
 
 use crate::node_test;
 use crate::token::{AxisName, NodeTestName, Token};

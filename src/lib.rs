@@ -16,8 +16,8 @@
 //! to use [`evaluate_xpath`][evaluate_xpath].
 //!
 //! ```
-//! use sxd_document::parser;
-//! use sxd_xpath::{evaluate_xpath, Value};
+//! use sxd_document_no_unsafe::parser;
+//! use sxd_xpath_no_unsafe::{evaluate_xpath, Value};
 //!
 //! let package = parser::parse("<root>hello</root>").expect("failed to parse XML");
 //! let document = package.as_document();
@@ -40,8 +40,8 @@
 //! accomplished:
 //!
 //! ```
-//! use sxd_document::parser;
-//! use sxd_xpath::{Factory, Context, Value};
+//! use sxd_document_no_unsafe::parser;
+//! use sxd_xpath_no_unsafe::{Factory, Context, Value};
 //!
 //! let package = parser::parse("<root>hello</root>")
 //!     .expect("failed to parse XML");
@@ -105,8 +105,8 @@
 use snafu::{ResultExt, Snafu};
 use std::borrow::ToOwned;
 use std::string;
-use sxd_document::dom::Document;
-use sxd_document::{PrefixedName, QName};
+use sxd_document_no_unsafe::dom::Document;
+use sxd_document_no_unsafe::{PrefixedName, QName};
 
 use crate::parser::Parser;
 use crate::tokenizer::{TokenDeabbreviator, Tokenizer};
@@ -199,6 +199,15 @@ impl<'a> From<QName<'a>> for OwnedQName {
             namespace_uri: name.namespace_uri().map(Into::into),
             local_part: name.local_part().into(),
         }
+    }
+}
+
+impl OwnedQName {
+    pub fn local_part(&self) -> &str {
+        &self.local_part
+    }
+    pub fn namespace_uri(&self) -> Option<&str> {
+        self.namespace_uri.as_deref()
     }
 }
 
@@ -354,8 +363,8 @@ impl XPath {
     /// The most common case is to pass in a reference to a [`Context`][]:
     ///
     /// ```rust,no_run
-    /// use sxd_document::dom::Document;
-    /// use sxd_xpath::{XPath, Context};
+    /// use sxd_document_no_unsafe::dom::Document;
+    /// use sxd_xpath_no_unsafe::{XPath, Context};
     ///
     /// fn my_evaluate(doc: Document, xpath: XPath) {
     ///     let mut context = Context::new();
@@ -442,8 +451,8 @@ pub enum Error {
 /// # Examples
 ///
 /// ```
-/// use sxd_document::parser;
-/// use sxd_xpath::{evaluate_xpath, Value};
+/// use sxd_document_no_unsafe::parser;
+/// use sxd_xpath_no_unsafe::{evaluate_xpath, Value};
 ///
 /// let package = parser::parse("<root><a>1</a><b>2</b></root>").expect("failed to parse the XML");
 /// let document = package.as_document();
@@ -465,7 +474,7 @@ pub fn evaluate_xpath<'d>(document: &'d Document<'d>, xpath: &str) -> Result<Val
 mod test {
     use std::borrow::ToOwned;
 
-    use sxd_document::{self, dom, Package};
+    use sxd_document_no_unsafe::{self, dom, Package};
 
     use super::*;
 
@@ -591,7 +600,7 @@ mod test {
     where
         F: FnOnce(dom::Document<'_>),
     {
-        let package = sxd_document::parser::parse(xml).expect("Unable to parse test XML");
+        let package = sxd_document_no_unsafe::parser::parse(xml).expect("Unable to parse test XML");
         f(package.as_document());
     }
 

@@ -687,8 +687,8 @@ impl Parser {
 mod test {
     use snafu::ResultExt;
     use std::borrow::ToOwned;
-    use sxd_document::dom::{self, Document, Element, Root, Text};
-    use sxd_document::Package;
+    use sxd_document_no_unsafe::dom::{self, Document, Element, Root, Text};
+    use sxd_document_no_unsafe::Package;
 
     use crate::context::{self, Context};
     use crate::expression::{Expression, SubExpression};

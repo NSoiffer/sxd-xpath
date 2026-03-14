@@ -77,8 +77,8 @@ impl AxisLike for Axis {
         let mut node_test = CompleteNodeTest::new(context, node_test);
 
         match *self {
-            Ancestor => each_parent(context.node, |n| node_test.run(n)),
-            AncestorOrSelf => node_and_each_parent(context.node, |n| node_test.run(n)),
+            Ancestor => each_parent(context.node.clone(), |n| node_test.run(n)),
+            AncestorOrSelf => node_and_each_parent(context.node.clone(), |n| node_test.run(n)),
             Attribute => {
                 if let Node::Element(ref e) = context.node {
                     for attr in e.attributes() {
@@ -91,8 +91,8 @@ impl AxisLike for Axis {
                     for ns in e.namespaces_in_scope() {
                         let ns = Node::Namespace(nodeset::Namespace {
                             parent: *e,
-                            prefix: ns.prefix(),
-                            uri: ns.uri(),
+                            prefix: sxd_document_no_unsafe::to_ns_str!(ns.prefix()),
+                            uri: sxd_document_no_unsafe::to_ns_str!(ns.uri()),
                         });
 
                         node_test.run(ns);
@@ -109,7 +109,7 @@ impl AxisLike for Axis {
                     preorder_left_to_right(child, |n| node_test.run(n));
                 }
             }
-            DescendantOrSelf => preorder_left_to_right(context.node, |n| node_test.run(n)),
+            DescendantOrSelf => preorder_left_to_right(context.node.clone(), |n| node_test.run(n)),
             Parent => {
                 if let Some(parent) = context.node.parent() {
                     node_test.run(parent);
@@ -125,17 +125,17 @@ impl AxisLike for Axis {
                     node_test.run(sibling)
                 }
             }
-            Preceding => node_and_each_parent(context.node, |node| {
+            Preceding => node_and_each_parent(context.node.clone(), |node| {
                 for sibling in node.preceding_siblings() {
                     postorder_right_to_left(sibling, |n| node_test.run(n));
                 }
             }),
-            Following => node_and_each_parent(context.node, |node| {
+            Following => node_and_each_parent(context.node.clone(), |node| {
                 for sibling in node.following_siblings() {
                     preorder_left_to_right(sibling, |n| node_test.run(n));
                 }
             }),
-            SelfAxis => node_test.run(context.node),
+            SelfAxis => node_test.run(context.node.clone()),
         }
 
         node_test.result
@@ -158,9 +158,10 @@ where
     let mut stack = vec![node];
 
     while let Some(current) = stack.pop() {
+        let children = current.children();
         f(current);
 
-        for child in current.children().into_iter().rev() {
+        for child in children.into_iter().rev() {
             stack.push(child);
         }
     }
@@ -191,7 +192,8 @@ fn node_and_each_parent<'d, F>(node: Node<'d>, mut f: F)
 where
     F: FnMut(Node<'d>),
 {
-    f(node);
+    let n = node.clone();
+    f(n);
     each_parent(node, f);
 }
 
@@ -200,15 +202,15 @@ where
     F: FnMut(Node<'d>),
 {
     while let Some(parent) = node.parent() {
+        node = parent.clone();
         f(parent);
-        node = parent;
     }
 }
 
 #[cfg(test)]
 mod test {
-    use sxd_document::dom;
-    use sxd_document::Package;
+    use sxd_document_no_unsafe::dom;
+    use sxd_document_no_unsafe::Package;
 
     use crate::context::{self, Context};
     use crate::node_test::NodeTest;
@@ -225,7 +227,7 @@ mod test {
             context: &context::Evaluation<'c, 'd>,
             result: &mut OrderedNodes<'d>,
         ) {
-            result.add(context.node)
+            result.add(context.node.clone())
         }
     }
 

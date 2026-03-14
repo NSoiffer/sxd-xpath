@@ -4,7 +4,10 @@ name = "evaluate"
 version = "0.1.0"
 edition = "2018"
 
+[features]
+no-unsafe = ["sxd-document/no-unsafe", "sxd-xpath/no-unsafe"]
+
 [dependencies]
 getopts = "0.2.4"
-sxd-document = "0.3.0"
+sxd-document = { path = "../../sxd-document", package = "sxd-document_no_unsafe", version = ">= 0.3, < 0.5" }
 sxd-xpath = { path = ".." }

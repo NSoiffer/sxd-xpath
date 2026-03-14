@@ -1,6 +1,6 @@
 use std::fmt;
 
-use sxd_document::QName;
+use sxd_document_no_unsafe::QName;
 
 use crate::context;
 use crate::nodeset::{self, OrderedNodes};
@@ -57,8 +57,8 @@ impl Attribute {
 impl NodeTest for Attribute {
     fn test<'c, 'd>(&self, context: &context::Evaluation<'c, 'd>, result: &mut OrderedNodes<'d>) {
         if let nodeset::Node::Attribute(ref a) = context.node {
-            if self.name_test.matches(context, a.name()) {
-                result.add(context.node);
+            if self.name_test.matches(context, sxd_document_no_unsafe::as_qname!(a.name())) {
+                result.add(context.node.clone());
             }
         }
     }
@@ -79,7 +79,7 @@ impl NodeTest for Namespace {
     fn test<'c, 'd>(&self, context: &context::Evaluation<'c, 'd>, result: &mut OrderedNodes<'d>) {
         if let nodeset::Node::Namespace(ref ns) = context.node {
             if self.name_test.matches(context, QName::new(ns.prefix())) {
-                result.add(context.node);
+                result.add(context.node.clone());
             }
         }
     }
@@ -99,8 +99,8 @@ impl Element {
 impl NodeTest for Element {
     fn test<'c, 'd>(&self, context: &context::Evaluation<'c, 'd>, result: &mut OrderedNodes<'d>) {
         if let nodeset::Node::Element(ref e) = context.node {
-            if self.name_test.matches(context, e.name()) {
-                result.add(context.node);
+            if self.name_test.matches(context, sxd_document_no_unsafe::as_qname!(e.name())) {
+                result.add(context.node.clone());
             }
         }
     }
@@ -112,7 +112,7 @@ pub struct Node;
 
 impl NodeTest for Node {
     fn test<'c, 'd>(&self, context: &context::Evaluation<'c, 'd>, result: &mut OrderedNodes<'d>) {
-        result.add(context.node);
+        result.add(context.node.clone());
     }
 }
 
@@ -123,7 +123,7 @@ pub struct Text;
 impl NodeTest for Text {
     fn test<'c, 'd>(&self, context: &context::Evaluation<'c, 'd>, result: &mut OrderedNodes<'d>) {
         if let nodeset::Node::Text(_) = context.node {
-            result.add(context.node);
+            result.add(context.node.clone());
         }
     }
 }
@@ -135,7 +135,7 @@ pub struct Comment;
 impl NodeTest for Comment {
     fn test<'c, 'd>(&self, context: &context::Evaluation<'c, 'd>, result: &mut OrderedNodes<'d>) {
         if let nodeset::Node::Comment(_) = context.node {
-            result.add(context.node);
+            result.add(context.node.clone());
         }
     }
 }
@@ -153,11 +153,11 @@ impl ProcessingInstruction {
 
 impl NodeTest for ProcessingInstruction {
     fn test<'c, 'd>(&self, context: &context::Evaluation<'c, 'd>, result: &mut OrderedNodes<'d>) {
-        if let nodeset::Node::ProcessingInstruction(pi) = context.node {
+        if let nodeset::Node::ProcessingInstruction(pi) = &context.node {
             match self.target {
-                Some(ref name) if name == pi.target() => result.add(context.node),
+                Some(ref name) if name == sxd_document_no_unsafe::as_str!(pi.target()) => result.add(context.node.clone()),
                 Some(_) => {}
-                None => result.add(context.node),
+                None => result.add(context.node.clone()),
             }
         }
     }
@@ -167,8 +167,8 @@ impl NodeTest for ProcessingInstruction {
 mod test {
     use std::borrow::ToOwned;
 
-    use sxd_document::dom::{self, Document};
-    use sxd_document::{Package, QName};
+    use sxd_document_no_unsafe::dom::{self, Document};
+    use sxd_document_no_unsafe::{Package, QName};
 
     use crate::context::{self, Context};
     use crate::nodeset::OrderedNodes;

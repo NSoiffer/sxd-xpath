@@ -1,7 +1,7 @@
 use snafu::{OptionExt, ResultExt, Snafu};
 use std::collections::HashSet;
 use std::fmt;
-use sxd_document::QName;
+use sxd_document_no_unsafe::QName;
 
 use crate::axis::{Axis, AxisLike};
 use crate::context;
@@ -94,7 +94,7 @@ pub struct ContextNode;
 
 impl Expression for ContextNode {
     fn evaluate<'c, 'd>(&self, context: &context::Evaluation<'c, 'd>) -> Result<Value<'d>, Error> {
-        Ok(Value::Nodeset(nodeset![context.node]))
+        Ok(Value::Nodeset(nodeset![context.node.clone()]))
     }
 }
 
@@ -478,6 +478,7 @@ impl Predicate {
         nodes: OrderedNodes<'d>,
     ) -> Result<OrderedNodes<'d>, Error> {
         context
+            .clone()
             .new_contexts_for(nodes)
             .filter_map(|ctx| match self.matches(&ctx) {
                 Ok(true) => Some(Ok(ctx.node)),
@@ -615,8 +616,8 @@ mod test {
     use std::cell::RefCell;
     use std::rc::Rc;
 
-    use sxd_document::dom::Document;
-    use sxd_document::Package;
+    use sxd_document_no_unsafe::dom::Document;
+    use sxd_document_no_unsafe::Package;
 
     use crate::axis::AxisLike;
     use crate::context::{self, Context};
@@ -1069,7 +1070,7 @@ mod test {
         let expr = ParameterizedStep::new(axis.clone(), Box::new(node_test), vec![]);
 
         let context = setup.context();
-        expr.evaluate(&context, nodeset![context.node]).unwrap();
+        expr.evaluate(&context, nodeset![context.node.clone()]).unwrap();
 
         assert_eq!(1, axis.calls());
     }

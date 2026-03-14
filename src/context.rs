@@ -1,7 +1,7 @@
 //! Support for the various types of contexts before and during XPath
 //! evaluation.
 
-use sxd_document::QName;
+use sxd_document_no_unsafe::QName;
 
 use std::collections::HashMap;
 use std::iter;
@@ -26,9 +26,9 @@ type Namespaces = HashMap<String, String>;
 ///
 /// ```
 /// use std::collections::HashMap;
-/// use sxd_document::parser;
-/// use sxd_xpath::{Factory, Context, Value};
-/// use sxd_xpath::{context, function};
+/// use sxd_document_no_unsafe::parser;
+/// use sxd_xpath_no_unsafe::{Factory, Context, Value};
+/// use sxd_xpath_no_unsafe::{context, function};
 ///
 /// struct Sigmoid;
 /// impl function::Function for Sigmoid {
@@ -135,7 +135,7 @@ impl<'d> Default for Context<'d> {
 /// We track two separate lifetimes: that of the user-provided context
 /// (`'c`) and that of the document (`'d`). This allows the
 /// user-provided context to live shorter than the document.
-#[derive(Copy, Clone)]
+#[derive(Clone)]
 pub struct Evaluation<'c, 'd> {
     /// The context node
     pub node: Node<'d>,
@@ -147,6 +147,9 @@ pub struct Evaluation<'c, 'd> {
     variables: &'c Variables<'d>,
     namespaces: &'c Namespaces,
 }
+
+#[cfg(not(feature = "no-unsafe"))]
+impl<'c, 'd> Copy for Evaluation<'c, 'd> {}
 
 impl<'c, 'd> Evaluation<'c, 'd> {
     /// Prepares the context used while evaluating the XPath expression

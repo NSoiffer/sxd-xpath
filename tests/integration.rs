@@ -1,7 +1,7 @@
 use std::borrow::ToOwned;
-use sxd_document::{dom, parser};
-use sxd_xpath::{context, function, nodeset};
-use sxd_xpath::{evaluate_xpath, Context, Factory, Value};
+use sxd_document_no_unsafe::{dom, parser};
+use sxd_xpath_no_unsafe::{context, function, nodeset};
+use sxd_xpath_no_unsafe::{evaluate_xpath, Context, Factory, Value};
 
 #[test]
 fn functions_accept_arguments() {

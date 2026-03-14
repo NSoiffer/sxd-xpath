@@ -6,7 +6,7 @@ use std::collections::hash_map::Entry;
 use std::collections::HashMap;
 use std::iter;
 use std::ops::Index;
-use sxd_document::XmlChar;
+use sxd_document_no_unsafe::XmlChar;
 
 use crate::context;
 use crate::nodeset::Nodeset;
@@ -161,7 +161,7 @@ impl<'d> Args<'d> {
     ) -> Value<'d> {
         self.0
             .pop()
-            .unwrap_or_else(|| Value::Nodeset(nodeset![context.node]))
+            .unwrap_or_else(|| Value::Nodeset(nodeset![context.node.clone()]))
     }
 
     /// Removes the **last** argument if it is a string. If no
@@ -189,7 +189,7 @@ impl<'d> Args<'d> {
         match self.0.pop() {
             Some(Value::Nodeset(ns)) => Ok(ns),
             Some(arg) => Err(Error::not_a_nodeset(&arg)),
-            None => Ok(nodeset![context.node]),
+            None => Ok(nodeset![context.node.clone()]),
         }
     }
 }
@@ -259,9 +259,9 @@ impl Function for LocalName {
         let name = arg
             .document_order_first()
             .and_then(|n| n.expanded_name())
-            .map(|q| q.local_part())
-            .unwrap_or("");
-        Ok(Value::String(name.to_owned()))
+            .map(|q| q.local_part().to_owned())
+            .unwrap_or_default();
+        Ok(Value::String(name))
     }
 }
 
@@ -279,9 +279,9 @@ impl Function for NamespaceUri {
         let name = arg
             .document_order_first()
             .and_then(|n| n.expanded_name())
-            .and_then(|q| q.namespace_uri())
-            .unwrap_or("");
-        Ok(Value::String(name.to_owned()))
+            .and_then(|q| q.namespace_uri().map(|s| s.to_owned()))
+            .unwrap_or_default();
+        Ok(Value::String(name))
     }
 }
 
@@ -670,7 +670,7 @@ mod test {
     use std::borrow::ToOwned;
     use std::{f64, fmt};
 
-    use sxd_document::Package;
+    use sxd_document_no_unsafe::Package;
 
     use crate::context;
     use crate::nodeset::Node;

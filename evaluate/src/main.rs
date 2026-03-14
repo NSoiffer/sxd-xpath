@@ -5,9 +5,9 @@ use std::env;
 use std::fs::File;
 use std::io::{self, Read};
 
-use sxd_document::parser::parse;
+use sxd_document_no_unsafe::parser::parse;
 
-use sxd_xpath::{Context, Factory, Value, XPath};
+use sxd_xpath_no_unsafe::{Context, Factory, Value, XPath};
 
 use getopts::Options;
 
@@ -24,7 +24,7 @@ fn build_xpath(xpath_str: &str) -> XPath {
         .unwrap_or_else(|e| panic!("Unable to compile XPath {}: {}", xpath_str, e))
 }
 
-fn load_xml<R>(input: R) -> sxd_document::Package
+fn load_xml<R>(input: R) -> sxd_document_no_unsafe::Package
 where
     R: Read,
 {
