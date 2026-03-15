@@ -2,15 +2,15 @@
 
 use snafu::Snafu;
 use std::borrow::ToOwned;
-use std::collections::hash_map::Entry;
 use std::collections::HashMap;
+use std::collections::hash_map::Entry;
 use std::iter;
 use std::ops::Index;
 use sxd_document_no_unsafe::XmlChar;
 
 use crate::context;
 use crate::nodeset::Nodeset;
-use crate::{str_to_num, Value};
+use crate::{Value, str_to_num};
 
 /// Types that can be used as XPath functions.
 pub trait Function {
@@ -677,9 +677,9 @@ mod test {
     use crate::{LiteralValue, Value};
 
     use super::{
-        ceiling, contains, floor, round, starts_with, substring_after, substring_before, BooleanFn,
-        Concat, Count, Error, Function, Last, LocalName, Name, NamespaceUri, NormalizeSpace,
-        NumberFn, Position, StringFn, StringLength, Substring, Sum, Translate,
+        BooleanFn, Concat, Count, Error, Function, Last, LocalName, Name, NamespaceUri,
+        NormalizeSpace, NumberFn, Position, StringFn, StringLength, Substring, Sum, Translate,
+        ceiling, contains, floor, round, starts_with, substring_after, substring_before,
     };
 
     /// Converts each argument into a `Value` and packs them into a

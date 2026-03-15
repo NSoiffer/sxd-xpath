@@ -1,12 +1,12 @@
-use snafu::{ensure, OptionExt, ResultExt, Snafu};
+use snafu::{OptionExt, ResultExt, Snafu, ensure};
 use std::iter::Peekable;
 
+use crate::Value;
 use crate::axis::{Axis, AxisLike, PrincipalNodeType};
 use crate::expression::{self, SubExpression};
 use crate::node_test::{self, SubNodeTest};
 use crate::token::{AxisName, NodeTestName, Token};
 use crate::tokenizer::{self, TokenResult};
-use crate::Value;
 
 #[allow(missing_copy_implementations)]
 pub struct Parser;
@@ -687,17 +687,17 @@ impl Parser {
 mod test {
     use snafu::ResultExt;
     use std::borrow::ToOwned;
-    use sxd_document_no_unsafe::dom::{self, Document, Element, Root, Text};
     use sxd_document_no_unsafe::Package;
+    use sxd_document_no_unsafe::dom::{self, Document, Element, Root, Text};
 
+    use crate::Value;
+    use crate::Value::{Boolean, Number, String};
     use crate::context::{self, Context};
     use crate::expression::{Expression, SubExpression};
     use crate::node_test;
     use crate::nodeset::Node;
     use crate::token::{AxisName, NodeTestName, Token};
     use crate::tokenizer::{self, TokenResult};
-    use crate::Value;
-    use crate::Value::{Boolean, Number, String};
 
     use super::*;
 

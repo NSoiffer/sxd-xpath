@@ -1,4 +1,4 @@
-use peresil::{self, try_parse, Identifier, ParseMaster, Recoverable, StringPoint};
+use peresil::{self, Identifier, ParseMaster, Recoverable, StringPoint, try_parse};
 use snafu::Snafu;
 use std::borrow::ToOwned;
 use std::collections::VecDeque;

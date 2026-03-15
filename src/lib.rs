@@ -475,7 +475,7 @@ pub fn evaluate_xpath<'d>(document: &'d Document<'d>, xpath: &str) -> Result<Val
 mod test {
     use std::borrow::ToOwned;
 
-    use sxd_document_no_unsafe::{self, dom, Package};
+    use sxd_document_no_unsafe::{self, Package, dom};
 
     use super::*;
 

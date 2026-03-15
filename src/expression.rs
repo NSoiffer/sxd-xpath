@@ -3,12 +3,12 @@ use std::collections::HashSet;
 use std::fmt;
 use sxd_document_no_unsafe::QName;
 
+use crate::Value::{Boolean, Number};
 use crate::axis::{Axis, AxisLike};
 use crate::context;
 use crate::function;
 use crate::node_test::NodeTest;
 use crate::nodeset::{Nodeset, OrderedNodes};
-use crate::Value::{Boolean, Number};
 use crate::{LiteralValue, OwnedPrefixedName, Value};
 
 #[derive(Debug, Snafu, Clone, PartialEq, Hash)]
@@ -616,15 +616,15 @@ mod test {
     use std::cell::RefCell;
     use std::rc::Rc;
 
-    use sxd_document_no_unsafe::dom::Document;
     use sxd_document_no_unsafe::Package;
+    use sxd_document_no_unsafe::dom::Document;
 
+    use crate::Value::{self, Boolean, Number, String};
     use crate::axis::AxisLike;
     use crate::context::{self, Context};
     use crate::function;
     use crate::node_test::NodeTest;
     use crate::nodeset::OrderedNodes;
-    use crate::Value::{self, Boolean, Number, String};
 
     use super::*;
 

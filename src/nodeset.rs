@@ -6,9 +6,9 @@ use std::collections::{HashMap, HashSet};
 use std::iter::{FromIterator, IntoIterator};
 use std::usize;
 
-use sxd_document_no_unsafe::dom;
 use sxd_document_no_unsafe::NsStr;
 use sxd_document_no_unsafe::QName;
+use sxd_document_no_unsafe::dom;
 
 #[cfg(feature = "no-unsafe")]
 use crate::OwnedQName;
