@@ -99,7 +99,8 @@
 #![allow(
     clippy::legacy_numeric_constants,
     clippy::match_like_matches_macro,
-    clippy::option_as_ref_deref
+    clippy::option_as_ref_deref,
+    clippy::clone_on_copy // Node, Namespace, Evaluation are Copy only in default build
 )]
 
 use snafu::{ResultExt, Snafu};

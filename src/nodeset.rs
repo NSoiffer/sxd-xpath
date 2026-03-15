@@ -7,8 +7,8 @@ use std::iter::{FromIterator, IntoIterator};
 use std::usize;
 
 use sxd_document_no_unsafe::dom;
-use sxd_document_no_unsafe::QName;
 use sxd_document_no_unsafe::NsStr;
+use sxd_document_no_unsafe::QName;
 
 #[cfg(feature = "no-unsafe")]
 use crate::OwnedQName;
@@ -20,12 +20,16 @@ pub type ExpandedName<'d> = OwnedQName;
 
 #[cfg(not(feature = "no-unsafe"))]
 macro_rules! to_expanded_name {
-    ($e:expr) => { $e };
+    ($e:expr) => {
+        $e
+    };
 }
 
 #[cfg(feature = "no-unsafe")]
 macro_rules! to_expanded_name {
-    ($e:expr) => { OwnedQName::from($e) };
+    ($e:expr) => {
+        OwnedQName::from($e)
+    };
 }
 
 macro_rules! unpack(
@@ -127,8 +131,15 @@ impl<'d> Node<'d> {
             preferred_prefix: Option<&str>,
         ) -> String {
             if let Some(ns_uri) = name.namespace_uri() {
-                if let Some(prefix) = element.prefix_for_namespace_uri(ns_uri, sxd_document_no_unsafe::as_opt_str!(preferred_prefix)) {
-                    format!("{}:{}", sxd_document_no_unsafe::as_str!(prefix), name.local_part())
+                if let Some(prefix) = element.prefix_for_namespace_uri(
+                    ns_uri,
+                    sxd_document_no_unsafe::as_opt_str!(preferred_prefix),
+                ) {
+                    format!(
+                        "{}:{}",
+                        sxd_document_no_unsafe::as_str!(prefix),
+                        name.local_part()
+                    )
                 } else {
                     name.local_part().to_owned()
                 }
@@ -139,14 +150,24 @@ impl<'d> Node<'d> {
 
         match self {
             Root(_) => None,
-            Element(n) => Some(qname_prefixed_name(*n, sxd_document_no_unsafe::as_qname!(n.name()), sxd_document_no_unsafe::as_opt_str!(n.preferred_prefix()))),
+            Element(n) => Some(qname_prefixed_name(
+                *n,
+                sxd_document_no_unsafe::as_qname!(n.name()),
+                sxd_document_no_unsafe::as_opt_str!(n.preferred_prefix()),
+            )),
             Attribute(n) => {
                 let parent = n.parent().expect("Cannot process attribute without parent");
-                Some(qname_prefixed_name(parent, sxd_document_no_unsafe::as_qname!(n.name()), sxd_document_no_unsafe::as_opt_str!(n.preferred_prefix())))
+                Some(qname_prefixed_name(
+                    parent,
+                    sxd_document_no_unsafe::as_qname!(n.name()),
+                    sxd_document_no_unsafe::as_opt_str!(n.preferred_prefix()),
+                ))
             }
             Text(_) => None,
             Comment(_) => None,
-            ProcessingInstruction(n) => Some(sxd_document_no_unsafe::as_str!(n.target()).to_owned()),
+            ProcessingInstruction(n) => {
+                Some(sxd_document_no_unsafe::as_str!(n.target()).to_owned())
+            }
             Namespace(n) => Some(n.prefix().to_owned()),
         }
     }
@@ -158,11 +179,17 @@ impl<'d> Node<'d> {
         use self::Node::*;
         match self {
             Root(_) => None,
-            Element(n) => Some(to_expanded_name!(sxd_document_no_unsafe::as_qname!(n.name()))),
-            Attribute(n) => Some(to_expanded_name!(sxd_document_no_unsafe::as_qname!(n.name()))),
+            Element(n) => Some(to_expanded_name!(sxd_document_no_unsafe::as_qname!(
+                n.name()
+            ))),
+            Attribute(n) => Some(to_expanded_name!(sxd_document_no_unsafe::as_qname!(
+                n.name()
+            ))),
             Text(_) => None,
             Comment(_) => None,
-            ProcessingInstruction(n) => Some(to_expanded_name!(QName::new(sxd_document_no_unsafe::as_str!(n.target())))),
+            ProcessingInstruction(n) => Some(to_expanded_name!(QName::new(
+                sxd_document_no_unsafe::as_str!(n.target())
+            ))),
             Namespace(n) => Some(n.expanded_name()),
         }
     }
@@ -271,7 +298,9 @@ impl<'d> Node<'d> {
             Root(_) => text_descendants_string_value(self),
             Element(_) => text_descendants_string_value(self),
             Attribute(n) => sxd_document_no_unsafe::as_str!(n.value()).to_owned(),
-            ProcessingInstruction(n) => sxd_document_no_unsafe::as_opt_str!(n.value()).unwrap_or("").to_owned(),
+            ProcessingInstruction(n) => sxd_document_no_unsafe::as_opt_str!(n.value())
+                .unwrap_or("")
+                .to_owned(),
             Comment(n) => sxd_document_no_unsafe::as_str!(n.text()).to_owned(),
             Text(n) => sxd_document_no_unsafe::as_str!(n.text()).to_owned(),
             Namespace(n) => n.uri().to_owned(),
@@ -384,10 +413,7 @@ impl<'d> Nodeset<'d> {
 
         let order = DocOrder::new(node.document());
 
-        self.nodes
-            .iter()
-            .min_by_key(|n| order.order_of(n))
-            .cloned()
+        self.nodes.iter().min_by_key(|n| order.order_of(n)).cloned()
     }
 
     pub fn document_order(&self) -> Vec<Node<'d>> {

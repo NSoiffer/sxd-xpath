@@ -57,7 +57,10 @@ impl Attribute {
 impl NodeTest for Attribute {
     fn test<'c, 'd>(&self, context: &context::Evaluation<'c, 'd>, result: &mut OrderedNodes<'d>) {
         if let nodeset::Node::Attribute(ref a) = context.node {
-            if self.name_test.matches(context, sxd_document_no_unsafe::as_qname!(a.name())) {
+            if self
+                .name_test
+                .matches(context, sxd_document_no_unsafe::as_qname!(a.name()))
+            {
                 result.add(context.node.clone());
             }
         }
@@ -99,7 +102,10 @@ impl Element {
 impl NodeTest for Element {
     fn test<'c, 'd>(&self, context: &context::Evaluation<'c, 'd>, result: &mut OrderedNodes<'d>) {
         if let nodeset::Node::Element(ref e) = context.node {
-            if self.name_test.matches(context, sxd_document_no_unsafe::as_qname!(e.name())) {
+            if self
+                .name_test
+                .matches(context, sxd_document_no_unsafe::as_qname!(e.name()))
+            {
                 result.add(context.node.clone());
             }
         }
@@ -155,7 +161,9 @@ impl NodeTest for ProcessingInstruction {
     fn test<'c, 'd>(&self, context: &context::Evaluation<'c, 'd>, result: &mut OrderedNodes<'d>) {
         if let nodeset::Node::ProcessingInstruction(pi) = &context.node {
             match self.target {
-                Some(ref name) if name == sxd_document_no_unsafe::as_str!(pi.target()) => result.add(context.node.clone()),
+                Some(ref name) if name == sxd_document_no_unsafe::as_str!(pi.target()) => {
+                    result.add(context.node.clone())
+                }
                 Some(_) => {}
                 None => result.add(context.node.clone()),
             }

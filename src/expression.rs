@@ -1070,7 +1070,8 @@ mod test {
         let expr = ParameterizedStep::new(axis.clone(), Box::new(node_test), vec![]);
 
         let context = setup.context();
-        expr.evaluate(&context, nodeset![context.node.clone()]).unwrap();
+        expr.evaluate(&context, nodeset![context.node.clone()])
+            .unwrap();
 
         assert_eq!(1, axis.calls());
     }
