@@ -1,6 +1,6 @@
 # SXD-XPath
 
-An XML XPath library in Rust.
+An XML XPath library in Rust, modified to use a `no-unsafe` flag which uses the modified sxd-document XML library.
 
 [![Build Status](https://github.com/shepmaster/sxd-xpath/workflows/Continuous%20integration/badge.svg)](https://github.com/shepmaster/sxd-xpath/actions?query=branch%3Amaster)
 [![Current Version](https://img.shields.io/crates/v/sxd-xpath.svg)](https://crates.io/crates/sxd-xpath)
