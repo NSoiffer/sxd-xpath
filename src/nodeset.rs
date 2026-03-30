@@ -10,22 +10,10 @@ use sxd_document_no_unsafe::NsStr;
 use sxd_document_no_unsafe::QName;
 use sxd_document_no_unsafe::dom;
 
-#[cfg(feature = "no-unsafe")]
 use crate::OwnedQName;
 
-#[cfg(not(feature = "no-unsafe"))]
-pub type ExpandedName<'d> = QName<'d>;
-#[cfg(feature = "no-unsafe")]
 pub type ExpandedName<'d> = OwnedQName;
 
-#[cfg(not(feature = "no-unsafe"))]
-macro_rules! to_expanded_name {
-    ($e:expr) => {
-        $e
-    };
-}
-
-#[cfg(feature = "no-unsafe")]
 macro_rules! to_expanded_name {
     ($e:expr) => {
         OwnedQName::from($e)
@@ -70,9 +58,6 @@ pub struct Namespace<'d> {
     pub uri: NsStr<'d>,
 }
 
-#[cfg(not(feature = "no-unsafe"))]
-impl<'d> Copy for Namespace<'d> {}
-
 impl<'d> Namespace<'d> {
     pub fn document(&self) -> dom::Document<'d> {
         self.parent.document()
@@ -102,9 +87,6 @@ pub enum Node<'d> {
     Namespace(Namespace<'d>),
     ProcessingInstruction(dom::ProcessingInstruction<'d>),
 }
-
-#[cfg(not(feature = "no-unsafe"))]
-impl<'d> Copy for Node<'d> {}
 
 impl<'d> Node<'d> {
     /// The document to which this node belongs.

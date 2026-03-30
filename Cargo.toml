@@ -4,7 +4,7 @@ version = "0.5.1"
 authors = ["Jake Goulding <jake.goulding@gmail.com>", "Neil Soiffer <soiffer@alum.mit.edu>"]
 edition = "2024"
 
-description = "A Rust XML XPath library with an optional no-unsafe feature"
+description = "A Rust XML XPath library (safe code)"
 readme = "README.md"
 keywords = ["xml", "xpath"]
 
@@ -16,7 +16,6 @@ license = "MIT/Apache-2.0"
 [features]
 # Unused -- remove on next semver-imcompatible release
 unstable = []
-no-unsafe = ["sxd-document-no-unsafe/no-unsafe"]
 
 [dependencies]
 peresil = "0.3.0"

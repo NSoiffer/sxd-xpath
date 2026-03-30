@@ -148,9 +148,6 @@ pub struct Evaluation<'c, 'd> {
     namespaces: &'c Namespaces,
 }
 
-#[cfg(not(feature = "no-unsafe"))]
-impl<'c, 'd> Copy for Evaluation<'c, 'd> {}
-
 impl<'c, 'd> Evaluation<'c, 'd> {
     /// Prepares the context used while evaluating the XPath expression
     pub fn new(context: &'c Context<'d>, node: Node<'d>) -> Evaluation<'c, 'd> {
