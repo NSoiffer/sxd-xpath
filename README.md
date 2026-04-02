@@ -1,10 +1,10 @@
 # SXD-XPath
 
-An XML XPath library in Rust, modified to use a `no-unsafe` flag which uses the modified sxd-document XML library.
+An XML XPath library in Rust, modified to support a `no-unsafe` flag and the sxd-document-no-unsafe XML library.
 
-[![Build Status](https://github.com/shepmaster/sxd-xpath/workflows/Continuous%20integration/badge.svg)](https://github.com/shepmaster/sxd-xpath/actions?query=branch%3Amaster)
-[![Current Version](https://img.shields.io/crates/v/sxd-xpath.svg)](https://crates.io/crates/sxd-xpath)
-[![Documentation](https://docs.rs/sxd-xpath/badge.svg)](https://docs.rs/sxd-xpath/)
+[![Build Status](https://github.com/nsoiffer/sxd-xpath/workflows/Continuous%20integration/badge.svg)](https://github.com/nsoiffer/sxd-xpath/actions?query=branch%3Amaster)
+[![Current Version](https://img.shields.io/crates/v/sxd-xpath-no-unsafe.svg)](https://crates.io/crates/sxd-xpath-no-unsafe)
+[![Documentation](https://docs.rs/sxd-xpath-no-unsafe/badge.svg)](https://docs.rs/sxd-xpath-no-unsafe/)
 
 ## Overview
 
@@ -16,20 +16,22 @@ The project is broken into two crates:
 There are also scattered utilities for playing around at the command
 line.
 
-In the future, I hope to add support for XSLT 1.0.
-
-[sxd-document]: https://github.com/shepmaster/sxd-document/
+[sxd-document]: https://github.com/nsoiffer/sxd-document-no-unsafe/
 
 ## Goals
 
-This project has a lofty goal: replace [libxml] and [libxslt].
+This project aims to offer a version of Jake Goulding's [sxd-xpath](https://crates.io/crates/sxd-xpath) library
+that works with the modified version of [sxd-document](https://crates.io/crates/sxd-document).
+The modified version is [sxd-document-no-unsafe](https://crates.io/crates/sxd-document-no-unsafe),
+which does not contain calls to `unsafe`, for users who are constrained to avoid code containing `unsafe`.
+The original library does not contain calls to `unsafe`, but needed to be modified a little to deal with differences between the two versions of sxd-document.
+With default features enabled, the compiled code should match the [original project](https://github.com/shepmaster/sxd-xpath).
 
-[libxml]: http://xmlsoft.org/
-[libxslt]: http://xmlsoft.org/
+I have _not_ updated the documentation.
 
 ## Contributing
 
-1. Fork it ( https://github.com/shepmaster/sxd-xpath/fork )
+1. Fork it (<https://github.com/nsoiffer/sxd-xpath-no-unsafe/fork>)
 2. Create your feature branch (`git checkout -b my-new-feature`)
 3. Add a failing test.
 4. Add code to pass the test.
@@ -41,8 +43,10 @@ This project has a lofty goal: replace [libxml] and [libxslt].
 ## License
 
 Licensed under either of
- * Apache License, Version 2.0 ([LICENSE-APACHE](LICENSE-APACHE) or https://www.apache.org/licenses/LICENSE-2.0)
- * MIT license ([LICENSE-MIT](LICENSE-MIT) or https://opensource.org/licenses/MIT)
+
+* Apache License, Version 2.0 ([LICENSE-APACHE](LICENSE-APACHE) or https://www.apache.org/licenses/LICENSE-2.0)
+* MIT license ([LICENSE-MIT](LICENSE-MIT) or https://opensource.org/licenses/MIT)
+
 at your option.
 
 ### Contribution
